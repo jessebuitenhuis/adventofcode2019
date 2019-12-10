@@ -28,24 +28,35 @@ enum OpCode {
 }
 
 export class IntCode {
-  instructions: number[];
+  instructions: number[] = [];
   pointer = 0;
+  inputPointer = 0;
+  output: number;
 
-  constructor(data: string) {
-    this.instructions = data.split(",").map(x => parseInt(x));
+  constructor(private data: string) {
+    this.reset();
   }
 
-  main(input: number): void {
+  run(input: number[]): number {
+    this.reset();
+
     while (this.pointer < this.instructions.length) {
       const result = this.runInstruction(input);
       if (result === false) {
         break;
       }
     }
-    console.log(`Program terminated with code ${this.instructions[0]}`)
+    return this.output;
   }
 
-  runInstruction(input: number) {
+  reset() {
+    this.instructions = this.data.split(",").map(x => parseInt(x));
+    this.pointer = 0;
+    this.inputPointer = 0;
+    this.output = undefined;
+  }
+
+  runInstruction(input: number[]) {
     const instruction = this.getInstruction();
     const firstVal = this.getParamValue(1, instruction.mode1);
     const secondVal = this.getParamValue(2, instruction.mode2); 
@@ -65,12 +76,12 @@ export class IntCode {
         break;
       case OpCode.saveInput:
         var outputPos = this.getParamValue(1, ParameterMode.immediate);
-        this.instructions[outputPos] = input;
+        this.instructions[outputPos] = input[this.inputPointer];
+        this.inputPointer += 1;
         this.pointer += 2;
         break;
       case OpCode.output:
-        var outputValue = this.getParamValue(1, instruction.mode1);
-        console.log(`Output: ${outputValue.toString()}`);
+        var outputValue = this.output = this.getParamValue(1, instruction.mode1);
         this.pointer += 2;
         break;
       case OpCode.jumpIfTrue:

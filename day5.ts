@@ -5,6 +5,7 @@ const puzzleInput = `3,225,1,225,6,6,1100,1,238,225,104,0,1002,92,42,224,1001,22
 
 const computer = new IntCode(puzzleInput);
 
-computer.main(5);
+const output = computer.run([5]);
+console.log(output);
 
 //

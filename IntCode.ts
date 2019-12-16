@@ -31,19 +31,17 @@ export class IntCode {
   instructions: number[] = [];
   pointer = 0;
   inputPointer = 0;
-  output: number;
+  output?: number;
 
   constructor(private data: string) {
     this.reset();
   }
 
-  run(input: number[]): number {
-    this.reset();
-
+  run(input: number[]): number | undefined | false {
     while (this.pointer < this.instructions.length) {
       const result = this.runInstruction(input);
       if (result === false) {
-        break;
+        return false;
       }
     }
     return this.output;
@@ -59,7 +57,7 @@ export class IntCode {
   runInstruction(input: number[]) {
     const instruction = this.getInstruction();
     const firstVal = this.getParamValue(1, instruction.mode1);
-    const secondVal = this.getParamValue(2, instruction.mode2); 
+    const secondVal = this.getParamValue(2, instruction.mode2);
 
     switch (instruction.opCode) {
       case OpCode.add:
@@ -81,32 +79,35 @@ export class IntCode {
         this.pointer += 2;
         break;
       case OpCode.output:
-        var outputValue = this.output = this.getParamValue(1, instruction.mode1);
+        var outputValue = (this.output = this.getParamValue(
+          1,
+          instruction.mode1
+        ));
         this.pointer += 2;
         break;
       case OpCode.jumpIfTrue:
         if (firstVal !== 0) {
-            this.pointer = secondVal;
+          this.pointer = secondVal;
         } else {
-            this.pointer += 3;
+          this.pointer += 3;
         }
         break;
-    case OpCode.jumpIfFalse:
+      case OpCode.jumpIfFalse:
         if (firstVal === 0) {
-            this.pointer = secondVal;
+          this.pointer = secondVal;
         } else {
-            this.pointer += 3;
+          this.pointer += 3;
         }
         break;
-        case OpCode.lessThan:
-            var outputPos = this.getParamValue(3, ParameterMode.immediate);
-            this.instructions[outputPos] = firstVal < secondVal ? 1 : 0;
-            this.pointer += 4;
+      case OpCode.lessThan:
+        var outputPos = this.getParamValue(3, ParameterMode.immediate);
+        this.instructions[outputPos] = firstVal < secondVal ? 1 : 0;
+        this.pointer += 4;
         break;
-        case OpCode.equals:
-            var outputPos = this.getParamValue(3, ParameterMode.immediate);
-            this.instructions[outputPos] = firstVal === secondVal ? 1 : 0;
-            this.pointer += 4;
+      case OpCode.equals:
+        var outputPos = this.getParamValue(3, ParameterMode.immediate);
+        this.instructions[outputPos] = firstVal === secondVal ? 1 : 0;
+        this.pointer += 4;
         break;
       case OpCode.terminate:
         return false;
